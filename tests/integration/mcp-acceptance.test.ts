@@ -31,7 +31,7 @@ beforeAll(() => {
     },
   );
   const db = openDb(dbPath);
-  const users = new Users(db, "nacho@4geeksacademy.com");
+  const users = new Users(db, "admin@equipo.test");
   const center = new CenterAuth({ baseUrl: "http://127.0.0.1:9", callsSlug: "x" });
   const app = createApp({
     db,

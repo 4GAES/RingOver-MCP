@@ -165,7 +165,11 @@ function LeadsSection() {
     <>
       <div className="section-title">
         <h2>Solicitudes de la landing</h2>
-        <span className="hint">Se avisan por email a mgomez@4geeksacademy.com; aquí quedan siempre</span>
+        <span className="hint">
+          {q.data?.notifyTo
+            ? `Se avisan por email a ${q.data.notifyTo}; aquí quedan siempre`
+            : "El aviso por email no está configurado; aquí quedan siempre"}
+        </span>
       </div>
       <div className="card">
         {!q.data ? (

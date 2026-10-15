@@ -22,14 +22,15 @@ const schema = z.object({
   GOOGLE_AUTH_URL: z.url().default("https://accounts.google.com/o/oauth2/v2/auth"),
   GOOGLE_TOKEN_URL: z.url().default("https://oauth2.googleapis.com/token"),
   // Admins fijos (siempre entran y gestionan la lista de usuarios), separados por comas.
-  ADMIN_EMAILS: z.string().default("ilopez@4geeksacademy.com"),
+  // Los emails reales van solo en el .env del servidor, nunca en el código.
+  ADMIN_EMAILS: z.string().default(""),
   // Límites de uso del MCP por token (llamadas a herramientas).
   MCP_RATE_PER_MIN: z.coerce.number().int().positive().default(60),
   MCP_RATE_PER_DAY: z.coerce.number().int().positive().default(2000),
   // Formulario de la landing: se envía por Brevo (cuenta de 4Geeks).
   BREVO_API_KEY: z.string().default(""),
-  LEADS_TO: z.string().default("mgomez@4geeksacademy.com"),
-  LEADS_FROM: z.string().default("ilopez@4geeksacademy.com"),
+  LEADS_TO: z.string().default(""),
+  LEADS_FROM: z.string().default(""),
   LEADS_FROM_NAME: z.string().default("Ringover 4Geeks"),
   MCP_TOKEN: z.string().default(""),
   COOKIE_SECURE: bool.default(true),

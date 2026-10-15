@@ -60,11 +60,11 @@ function setup(lim = limits) {
     callsSlug: "admisiones-contactabilidad",
     fetchImpl: centerFetch,
   });
-  const users = new Users(db, "jefa@4geeksacademy.com");
+  const users = new Users(db, "jefa@equipo.test");
   const google = new GoogleAuth({
     clientId: "cliente-test",
     clientSecret: "secreto",
-    allowedDomain: "4geeksacademy.com",
+    allowedDomain: "equipo.test",
     authUrl: "https://google.test/auth",
     tokenUrl: "https://google.test/token",
     fetchImpl: googleFetch,
@@ -86,7 +86,7 @@ function setup(lim = limits) {
     tokens: new ApiTokens(db, users, TOKEN),
     mcpLog: new McpLog(db, { perMin: lim.perMin, perDay: lim.perDay }),
     google,
-    allowedDomain: "4geeksacademy.com",
+    allowedDomain: "equipo.test",
     status: () => ({}),
   });
   return Object.assign(app, { db });
@@ -343,7 +343,7 @@ describe("login con Google y lista de usuarios", () => {
   async function googleLogin(
     app: ReturnType<typeof setup>,
     email: string,
-    hd: string | undefined = "4geeksacademy.com",
+    hd: string | undefined = "equipo.test",
   ) {
     const start = await app.request("/auth/google");
     const to = new URL(start.headers.get("location") ?? "");
@@ -371,9 +371,9 @@ describe("login con Google y lista de usuarios", () => {
     });
 
   it("manda a Google con PKCE, nonce y el dominio de la empresa", async () => {
-    const { to } = await googleLogin(setup(), "jefa@4geeksacademy.com");
+    const { to } = await googleLogin(setup(), "jefa@equipo.test");
     expect(to.origin + to.pathname).toBe("https://google.test/auth");
-    expect(to.searchParams.get("hd")).toBe("4geeksacademy.com");
+    expect(to.searchParams.get("hd")).toBe("equipo.test");
     expect(to.searchParams.get("code_challenge_method")).toBe("S256");
     expect(to.searchParams.get("redirect_uri")).toBe("https://ringover.test/auth/google/callback");
     expect((await (await setup().request("/api/auth/options")).json()).google).toBe(true);
@@ -381,49 +381,47 @@ describe("login con Google y lista de usuarios", () => {
 
   it("el admin fijo entra y gestiona la lista", async () => {
     const app = setup();
-    const { back, sid } = await googleLogin(app, "jefa@4geeksacademy.com");
+    const { back, sid } = await googleLogin(app, "jefa@equipo.test");
     expect(back.headers.get("location")).toBe("/");
     const me = await (await api(app, sid, "/api/auth/me")).json();
-    expect(me.user).toMatchObject({ email: "jefa@4geeksacademy.com", admin: true, provider: "google" });
+    expect(me.user).toMatchObject({ email: "jefa@equipo.test", admin: true, provider: "google" });
     const list = await (await api(app, sid, "/api/users")).json();
     expect(list.users[0]).toMatchObject({
-      email: "jefa@4geeksacademy.com",
+      email: "jefa@equipo.test",
       fixed: true,
       name: "Nombre Google",
     });
   });
 
   it("una cuenta de la empresa que no está en la lista no entra", async () => {
-    const { back, sid } = await googleLogin(setup(), "otra@4geeksacademy.com");
+    const { back, sid } = await googleLogin(setup(), "otra@equipo.test");
     expect(decodeURIComponent(back.headers.get("location") ?? "")).toContain("todavía no tiene acceso");
     expect(sid).toBe("");
   });
 
   it("rechaza cuentas personales aunque estén en la lista", async () => {
     const { back } = await googleLogin(setup(), "alguien@gmail.com", undefined);
-    expect(decodeURIComponent(back.headers.get("location") ?? "")).toContain("@4geeksacademy.com");
+    expect(decodeURIComponent(back.headers.get("location") ?? "")).toContain("@equipo.test");
   });
 
   it("el admin añade un lector: entra, ve datos y no puede gestionar; al quitarlo pierde la sesión", async () => {
     const app = setup();
-    const admin = (await googleLogin(app, "jefa@4geeksacademy.com")).sid;
-    expect((await api(app, admin, "/api/users", "POST", { email: "Ana@4geeksacademy.com" })).status).toBe(
-      200,
-    );
+    const admin = (await googleLogin(app, "jefa@equipo.test")).sid;
+    expect((await api(app, admin, "/api/users", "POST", { email: "Ana@equipo.test" })).status).toBe(200);
     expect((await api(app, admin, "/api/users", "POST", { email: "x@gmail.com" })).status).toBe(400);
 
-    const ana = (await googleLogin(app, "ana@4geeksacademy.com")).sid;
+    const ana = (await googleLogin(app, "ana@equipo.test")).sid;
     expect((await api(app, ana, "/api/overview")).status).toBe(200);
     expect((await api(app, ana, "/api/users")).status).toBe(403);
 
-    expect((await api(app, admin, "/api/users/ana%404geeksacademy.com", "DELETE")).status).toBe(200);
+    expect((await api(app, admin, "/api/users/ana%40equipo.test", "DELETE")).status).toBe(200);
     expect((await api(app, ana, "/api/overview")).status).toBe(401);
   });
 
   it("no se puede quitar al admin fijo ni a uno mismo; un admin de Center también gestiona", async () => {
     const app = setup();
-    const admin = (await googleLogin(app, "jefa@4geeksacademy.com")).sid;
-    expect((await api(app, admin, "/api/users/jefa%404geeksacademy.com", "DELETE")).status).toBe(400);
+    const admin = (await googleLogin(app, "jefa@equipo.test")).sid;
+    expect((await api(app, admin, "/api/users/jefa%40equipo.test", "DELETE")).status).toBe(400);
     const center = (await login(app, "admin@x.test")).headers.get("set-cookie")?.split(";")[0] ?? "";
     expect((await api(app, center, "/api/users")).status).toBe(200);
   });
@@ -441,7 +439,7 @@ describe("plataforma MCP: tokens, registro, consumo y OAuth", () => {
     const code = Buffer.from(
       JSON.stringify({
         email,
-        hd: "4geeksacademy.com",
+        hd: "equipo.test",
         nonce: to.searchParams.get("nonce"),
         cc: to.searchParams.get("code_challenge"),
       }),
@@ -491,7 +489,7 @@ describe("plataforma MCP: tokens, registro, consumo y OAuth", () => {
 
   it("cada persona genera su token, lo usa, y queda registrado con su consumo", async () => {
     const app = setup();
-    const { sid } = await google(app, "jefa@4geeksacademy.com");
+    const { sid } = await google(app, "jefa@equipo.test");
     const created = await (
       await api(app, sid, "/api/mcp/tokens", "POST", { name: "Claude portátil", expiresDays: 90 })
     ).json();
@@ -510,7 +508,7 @@ describe("plataforma MCP: tokens, registro, consumo y OAuth", () => {
     expect(logRes.items[0]).toMatchObject({
       tool: "resumen",
       status: "ok",
-      ownerEmail: "jefa@4geeksacademy.com",
+      ownerEmail: "jefa@equipo.test",
       client: "Claude 9.9",
     });
     expect(logRes.items[0].bytes).toBeGreaterThan(100);
@@ -524,7 +522,7 @@ describe("plataforma MCP: tokens, registro, consumo y OAuth", () => {
 
   it("un token revocado deja de valer y el intento queda registrado; el 401 indica dónde autorizar", async () => {
     const app = setup();
-    const { sid } = await google(app, "jefa@4geeksacademy.com");
+    const { sid } = await google(app, "jefa@equipo.test");
     const { token, id } = await (
       await api(app, sid, "/api/mcp/tokens", "POST", { name: "x", expiresDays: null })
     ).json();
@@ -540,22 +538,22 @@ describe("plataforma MCP: tokens, registro, consumo y OAuth", () => {
 
   it("si a la persona le quitan el acceso, su token muere con ella", async () => {
     const app = setup();
-    const admin = (await google(app, "jefa@4geeksacademy.com")).sid;
-    await api(app, admin, "/api/users", "POST", { email: "ana@4geeksacademy.com" });
-    const ana = (await google(app, "ana@4geeksacademy.com")).sid;
+    const admin = (await google(app, "jefa@equipo.test")).sid;
+    await api(app, admin, "/api/users", "POST", { email: "ana@equipo.test" });
+    const ana = (await google(app, "ana@equipo.test")).sid;
     const { token } = await (
       await api(app, ana, "/api/mcp/tokens", "POST", { name: "Ana", expiresDays: 30 })
     ).json();
     expect((await call(app, token, "comerciales")).status).toBe(200);
-    await api(app, admin, "/api/users/ana%404geeksacademy.com", "DELETE");
+    await api(app, admin, "/api/users/ana%40equipo.test", "DELETE");
     expect((await call(app, token, "comerciales")).status).toBe(401);
   });
 
   it("cada uno ve solo lo suyo; un admin puede ver todo el equipo", async () => {
     const app = setup();
-    const admin = (await google(app, "jefa@4geeksacademy.com")).sid;
-    await api(app, admin, "/api/users", "POST", { email: "ana@4geeksacademy.com" });
-    const ana = (await google(app, "ana@4geeksacademy.com")).sid;
+    const admin = (await google(app, "jefa@equipo.test")).sid;
+    await api(app, admin, "/api/users", "POST", { email: "ana@equipo.test" });
+    const ana = (await google(app, "ana@equipo.test")).sid;
     await api(app, ana, "/api/mcp/tokens", "POST", { name: "De Ana", expiresDays: 30 });
     await api(app, admin, "/api/mcp/tokens", "POST", { name: "De la jefa", expiresDays: 30 });
     const own = await (await api(app, ana, "/api/mcp/tokens?todo=1")).json();
@@ -570,7 +568,7 @@ describe("plataforma MCP: tokens, registro, consumo y OAuth", () => {
 
   it("aplica el límite por minuto y lo registra", async () => {
     const app = setup({ perMin: 2, perDay: 100 });
-    const { sid } = await google(app, "jefa@4geeksacademy.com");
+    const { sid } = await google(app, "jefa@equipo.test");
     const { token } = await (
       await api(app, sid, "/api/mcp/tokens", "POST", { name: "x", expiresDays: 30 })
     ).json();
@@ -651,7 +649,7 @@ describe("plataforma MCP: tokens, registro, consumo y OAuth", () => {
     const noSession = await app.request(`/oauth/authorize?${q}`);
     expect(noSession.headers.get("location")).toMatch(/^\/\?conectar=Claude/);
     extraCookies = [cookieOf(noSession, "rg_next")];
-    const { sid, back } = await google(app, "jefa@4geeksacademy.com");
+    const { sid, back } = await google(app, "jefa@equipo.test");
     extraCookies = [];
     expect(back.headers.get("location")).toBe(`/oauth/authorize?${q}`);
 

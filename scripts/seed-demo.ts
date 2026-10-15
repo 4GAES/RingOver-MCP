@@ -201,11 +201,11 @@ setState(db, "calls_synced_ms", NOW - 90_000);
 setState(db, "history_from_ms", Math.min(...calls.map((c) => Date.parse(c.start_time))));
 setState(db, "backfill_done", "1");
 // Actividad de demo del MCP: un token personal, una conexión de Claude y un mes de uso.
-const users = new Users(db, "nacho@4geeksacademy.com");
-users.add("ana@4geeksacademy.com", "viewer", "nacho@4geeksacademy.com", NOW - 20 * DAY_MS);
+const users = new Users(db, "admin@equipo.test");
+users.add("ana@equipo.test", "viewer", "admin@equipo.test", NOW - 20 * DAY_MS);
 const tokens = new ApiTokens(db, users, "");
-const nacho = { email: "nacho@4geeksacademy.com", name: "Nacho", provider: "google" as const, role: "admin" };
-const ana = { email: "ana@4geeksacademy.com", name: "Ana", provider: "google" as const, role: "viewer" };
+const nacho = { email: "admin@equipo.test", name: "Nacho", provider: "google" as const, role: "admin" };
+const ana = { email: "ana@equipo.test", name: "Ana", provider: "google" as const, role: "viewer" };
 const t1 = tokens.createPersonal(nacho, "Claude Code del portátil", 90, NOW - 25 * DAY_MS).id;
 const t2 = tokens.createGrant(nacho, "mcp_demo", "Claude", NOW - 18 * DAY_MS).grantId;
 const t3 = tokens.createGrant(ana, "mcp_demo2", "ChatGPT", NOW - 9 * DAY_MS).grantId;

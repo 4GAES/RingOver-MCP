@@ -296,7 +296,7 @@ export function useCreateLead() {
 export function useLeads(enabled: boolean) {
   return useQuery({
     queryKey: ["leads"],
-    queryFn: () => request<{ leads: LeadItem[] }>("/api/admin/leads"),
+    queryFn: () => request<{ leads: LeadItem[]; notifyTo: string | null }>("/api/admin/leads"),
     enabled,
     refetchInterval: 60_000,
   });

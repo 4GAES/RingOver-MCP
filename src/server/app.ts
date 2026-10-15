@@ -520,7 +520,9 @@ export function createApp(deps: AppDeps) {
   const domainOk = (email: string) =>
     !deps.allowedDomain || normEmail(email).endsWith(`@${deps.allowedDomain.toLowerCase()}`);
 
-  app.get("/api/admin/leads", requireAdmin, (c) => c.json({ leads: deps.leads?.list() ?? [] }));
+  app.get("/api/admin/leads", requireAdmin, (c) =>
+    c.json({ leads: deps.leads?.list() ?? [], notifyTo: deps.leads?.notifyTo ?? null }),
+  );
 
   app.get("/api/users", requireAdmin, (c) =>
     c.json({ users: deps.users.list(), domain: deps.allowedDomain ?? null }),

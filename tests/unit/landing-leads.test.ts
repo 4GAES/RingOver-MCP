@@ -7,7 +7,7 @@ import { CenterAuth } from "../../src/server/auth/center";
 import { Sessions } from "../../src/server/auth/sessions";
 import { ApiTokens } from "../../src/server/auth/tokens";
 import { Users } from "../../src/server/auth/users";
-import { LeadMailer, Leads } from "../../src/server/leads";
+import { LeadMailer, Leads, leadSchema } from "../../src/server/leads";
 import { McpLog } from "../../src/server/mcp/log";
 import { LEGAL_VERSION } from "../../src/shared/legal";
 import { memDb } from "./helpers";
@@ -27,7 +27,7 @@ function setup(brevo: typeof fetch | null = null) {
     join(dir, "legal-privacidad.html"),
     '<html><body><div id="root" data-legal="privacidad"><h1>Política de privacidad</h1></div></body></html>',
   );
-  const users = new Users(db, "jefa@4geeksacademy.com");
+  const users = new Users(db, "jefa@equipo.test");
   const center = new CenterAuth({
     baseUrl: "http://center.test",
     callsSlug: "x",
@@ -48,8 +48,8 @@ function setup(brevo: typeof fetch | null = null) {
     db,
     new LeadMailer({
       apiKey: "clave",
-      to: "mgomez@4geeksacademy.com",
-      from: "ilopez@4geeksacademy.com",
+      to: "ventas@equipo.test",
+      from: "avisos@equipo.test",
       fromName: "Ringover 4Geeks",
       fetchImpl,
     }),
@@ -94,7 +94,7 @@ const post = (app: ReturnType<typeof setup>["app"], body: unknown, ip = "1.1.1.1
   });
 
 describe("formulario de la landing", () => {
-  it("guarda la solicitud y la envía por Brevo a mgomez, con respuesta directa al interesado", async () => {
+  it("guarda la solicitud y la envía por Brevo al equipo comercial, con respuesta directa al interesado", async () => {
     const { app, db, sent } = setup();
     const res = await post(app, lead);
     expect(res.status).toBe(200);
@@ -102,8 +102,8 @@ describe("formulario de la landing", () => {
     expect(sent[0]?.url).toBe("https://api.brevo.com/v3/smtp/email");
     expect(sent[0]?.headers.get("api-key")).toBe("clave");
     expect(sent[0]?.body).toMatchObject({
-      to: [{ email: "mgomez@4geeksacademy.com" }],
-      sender: { email: "ilopez@4geeksacademy.com" },
+      to: [{ email: "ventas@equipo.test" }],
+      sender: { email: "avisos@equipo.test" },
       replyTo: { email: "ana@empresa.test" },
       subject: "Nueva solicitud · Ringover 4Geeks · Empresa Test",
     });
@@ -161,6 +161,28 @@ describe("formulario de la landing", () => {
     };
     expect(row.email_sent).toBe(0);
     expect(row.email_error).toMatch(/Brevo 400/);
+  });
+
+  it("sin destinatario configurado no envía nada, pero guarda la solicitud", async () => {
+    const db = memDb();
+    let calls = 0;
+    const mailer = new LeadMailer({
+      apiKey: "clave",
+      to: "",
+      from: "avisos@equipo.test",
+      fromName: "Ringover 4Geeks",
+      fetchImpl: async () => {
+        calls++;
+        return new Response("{}", { status: 201 });
+      },
+    });
+    const leads = new Leads(db, mailer);
+    expect(mailer.enabled).toBe(false);
+    expect(leads.notifyTo).toBeNull();
+    const r = await leads.create(leadSchema.parse(lead), { ip: "1.1.1.1", userAgent: null });
+    expect(r.emailed).toBe(false);
+    expect(calls).toBe(0);
+    expect(db.prepare("SELECT COUNT(*) AS n FROM leads").get()).toEqual({ n: 1 });
   });
 
   it("rechaza envíos desde otros sitios", async () => {

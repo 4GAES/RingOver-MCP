@@ -33,8 +33,8 @@ createServer((req, res) => {
   // ── Google simulado (para el login con Google en local y en los E2E) ──
   if (req.method === "GET" && url.pathname === "/google/auth") {
     const p = url.searchParams;
-    const email = p.get("como") ?? "nacho@4geeksacademy.com";
-    const hd = email.endsWith("@4geeksacademy.com") ? "4geeksacademy.com" : undefined;
+    const email = p.get("como") ?? "admin@equipo.test";
+    const hd = email.endsWith("@equipo.test") ? "equipo.test" : undefined;
     const code = b64({
       email,
       hd,

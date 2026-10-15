@@ -45,7 +45,12 @@ export class LeadMailer {
   }
 
   get enabled() {
-    return Boolean(this.o.apiKey);
+    return Boolean(this.o.apiKey && this.o.to && this.o.from);
+  }
+
+  /** A quién llegan los avisos (para enseñarlo a los admins en el panel). */
+  get recipient() {
+    return this.o.to || null;
   }
 
   /** Envía el aviso con reintentos (2) ante fallo de red o 5xx de Brevo. */
@@ -122,6 +127,11 @@ export class Leads {
     private readonly mailer: LeadMailer,
   ) {}
 
+  /** A quién se avisa por email (null si el envío no está configurado). */
+  get notifyTo(): string | null {
+    return this.mailer.enabled ? this.mailer.recipient : null;
+  }
+
   /** Máximo 5 solicitudes por IP y hora. */
   allow(ip: string, now = Date.now()): boolean {
     const recent = (this.hits.get(ip) ?? []).filter((t) => now - t < 3600_000);
@@ -169,7 +179,7 @@ export class Leads {
         ).lastInsertRowid,
     );
     if (!this.mailer.enabled) {
-      log.warn("lead guardado sin email (falta BREVO_API_KEY)", { id });
+      log.warn("lead guardado sin email (faltan BREVO_API_KEY, LEADS_TO o LEADS_FROM)", { id });
       return { id, emailed: false };
     }
     try {

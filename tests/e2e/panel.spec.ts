@@ -18,7 +18,7 @@ test.describe("sin sesión", () => {
     await page.goto("/");
     const start = await page.request.get("/auth/google", { maxRedirects: 0 });
     const to = new URL(start.headers().location ?? "");
-    to.searchParams.set("como", "desconocida@4geeksacademy.com");
+    to.searchParams.set("como", "desconocida@equipo.test");
     await page.goto(to.toString());
     await expect(page.getByRole("alert")).toContainText("todavía no tiene acceso");
   });
@@ -29,7 +29,7 @@ test.describe("sin sesión", () => {
     const to = new URL(start.headers().location ?? "");
     to.searchParams.set("como", "alguien@gmail.com");
     await page.goto(to.toString());
-    await expect(page.getByRole("alert")).toContainText("@4geeksacademy.com");
+    await expect(page.getByRole("alert")).toContainText("@equipo.test");
   });
 
   test("cerrar sesión vuelve al login", async ({ page }) => {
