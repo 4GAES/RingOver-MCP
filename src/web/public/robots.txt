@@ -1,0 +1,34 @@
+# Ringover 4Geeks — la landing es pública; el panel, la API y el MCP son privados.
+User-agent: *
+Disallow: /api/
+Disallow: /mcp
+Disallow: /oauth/
+Disallow: /auth/
+Disallow: /llamadas
+Disallow: /comercial/
+Disallow: /ia
+Disallow: /usuarios
+
+# Asistentes y buscadores de IA: bienvenidos a la landing y a /llms.txt.
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-User
+User-agent: Claude-SearchBot
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: Bingbot
+Allow: /
+Disallow: /api/
+Disallow: /mcp
+Disallow: /oauth/
+Disallow: /auth/
+Disallow: /llamadas
+Disallow: /comercial/
+Disallow: /ia
+Disallow: /usuarios
+
+Sitemap: https://ringover.duckdns.org/sitemap.xml
